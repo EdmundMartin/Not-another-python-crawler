@@ -20,7 +20,7 @@ list_file = 'list.txt'
 queue.append(root_url)
 crawled_urls, url_hub = [], [root_url]
 now = time.strftime('%Y-%m-%d %H:%M')
-db = sqlite3.connect(Project)
+db = sqlite3.connect('{}{}'.format(Project,'.db'))
 cursor = db.cursor()
 create_tables(db, cursor)
 into_campaigns(Project,now,cursor,db)
