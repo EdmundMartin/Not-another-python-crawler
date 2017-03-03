@@ -45,8 +45,12 @@ if len(queue) == 1:
     [queue.append(i) for i in finder.page_links()]
 
 def get_urls(html):
-    new_urls = [url.split('"')[0] for url in str(html).replace("'",'"').split('href="')[1:]]
-    return [urljoin(root_url, remove_fragment(new_url)) for new_url in new_urls]
+    new_urls = []
+    dom = htmlparser.fromstring(html)
+    for href in dom.xpath('//a/@href'):
+        url = urljoin(root_url, urldefrag(href)[0])
+        new_urls.append(url)
+    return new_urls
 
 async def get_body(url):
     async with ClientSession() as session:
