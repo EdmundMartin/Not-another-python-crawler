@@ -10,17 +10,19 @@ from Data import *
 
 # Settings so that it's possible to pause & resume crawls. 3 Crawl modes, list, crawl, web
 
-Project = 'sdsds'
-Threads = 100
+Project = 'zoopla'
+Threads = 2
 crawl_type = 'crawl'
 domains = set()
 queue = []
 root_url = "http://www.zoopla.co.uk/"
 list_file = 'list.txt'
+
+
 queue.append(root_url)
 crawled_urls, url_hub = [], [root_url]
 now = time.strftime('%Y-%m-%d %H:%M')
-db = sqlite3.connect('{}{}'.format(Project,'.db'))
+db = sqlite3.connect('{}.db'.format(Project))
 cursor = db.cursor()
 create_tables(db, cursor)
 into_campaigns(Project,now,cursor,db)
