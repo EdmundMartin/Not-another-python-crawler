@@ -2,37 +2,31 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import re
-from urllib.parse import urljoin, urldefrag, urlsplit, urlparse
+from urllib.parse import urlsplit, urlparse
 
 class load_queue():
     def __init__(self, root_url,crawl_type):
         self.links = set()
         r = requests.get(root_url,timeout=10)
-        soup = BeautifulSoup(r.text)
-        for link in soup.find_all('a'):
-            try:
-                # IF absolute links are used in the page use this
-                if link.attrs['href'] is not None:
-                    link_base = "{0.scheme}://{0.netloc}/".format(urlsplit(link.attrs['href']))
-                    if link_base == root_url and crawl_type =='crawl':
-                        url = link.attrs['href']
-                        self.links.add(url)
-                        # IF relative links are used in the page use this
-                    elif link_base == ':///' and crawl_type =='crawl':
-                        url = link.attrs['href']
-                        url = re.sub(r"^/", "", url)
-                        url = root_url + url
-                        self.links.add(url)
-                    elif crawl_type =='web' and link_base == ':///':
-                        url = link.attrs['href']
-                        url = re.sub(r"^/", "", url)
-                        url = root_url + url
-                        self.links.add(url)
-                    elif crawl_type =='web' and link_base != ':///':
-                        url = link.attrs['href']
-                        print(url)
-                        self.links.add(url)
+        base_url = r.url
+        try:
+            soup = BeautifulSoup(r.text,'lxml')
+        except:
+            soup = BeautifulSoup(r.text,'html.parser')
 
+        links = soup.find_all('a',href=True)
+        for link in links:
+            try:
+                if link.startswith('/'):
+                    link = ''.format('{}://{}{}'.format(base_url.scheme, base_url.netloc, link))
+                if not link.startswith('http'):
+                    pass
+                else:
+                    if crawl_type == 'crawl':
+                        if urlparse(link).netloc == base_url.netloc:
+                            self.links.add(link)
+                    else:
+                        self.links.add(link)
             except:
                 continue
 
@@ -104,21 +98,24 @@ class link_finder():
         self.url = url
         self.html = html
         self.links = set()
-        soup = BeautifulSoup(response, 'html.parser')
-        for link in soup.find_all('a'):
+
+        base_url = urlparse(url)
+
+        try:
+            soup = BeautifulSoup(response, 'lxml')
+        except:
+            soup = BeautifulSoup(response,'html.parser')
+
+        links = soup.find_all('a',href=True)
+
+        for link in links:
             try:
-                # IF absolute links are used in the page use this
-                if link.attrs['href'] is not None:
-                    link_base = "{0.scheme}://{0.netloc}/".format(urlsplit(link.attrs['href']))
-                    if link_base == base:
-                        url = link.attrs['href']
-                        self.links.add(url)
-                # IF relative links are used in the page use this
-                    elif link_base == ':///':
-                        url = link.attrs['href']
-                        url = re.sub(r"^/", "", url)
-                        url = base + url
-                        self.links.add(url)
+                if link.startswith('/'):
+                    link = ''.format('{}://{}{}'.format(base_url.scheme, base_url.netloc, link))
+                if not link.startswith('http'):
+                    pass
+                else:
+                    self.links.add(link)
             except:
                 continue
 
