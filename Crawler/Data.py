@@ -3,6 +3,7 @@ import requests
 import time
 import re
 from urllib.parse import urlsplit, urlparse
+from parsers import fast_parser
 
 class load_queue():
     def __init__(self, root_url,crawl_type):
@@ -50,45 +51,20 @@ class bloggers():
             if gen['content'] is not None:
                 type1 = gen['content']
             self.now = time.strftime('%Y-%m-%d %H:%M')
-            # cursor.execute('''INSERT INTO results(id,url,type,time)
-            #                   VALUES(?,?,?,?)''', (Project, url, type1, self.now))
-            # db.commit()
         except:
             type1 = 'None'
             self.now = time.strftime('%Y-%m-%d %H:%M')
-            # cursor.execute('''INSERT INTO results(id,url,type,time)
-            #                           VALUES(?,?,?,?)''', (Project, url, type1, self.now))
-            # db.commit()
-        try:
-            meta_title = soup.title.text
-            title_length = len(meta_title)
-        except:
-            meta_title = 'N/A'
-            title_length = 'N/A'
-        try:
-            meta_description = soup.find('meta', attrs={'name': 'description'})
-            meta_description = meta_description['content']
-            meta_description_length = len(meta_description)
-        except:
-            meta_description = 'N/A'
-            meta_description_length = 'N/A'
+
+        fs = fast_parser(body)
+        meta_title, title_length = fs.get_titles()
+        meta_description, meta_description_length = fs.get_metaDescription()
+        canonical, canonical_count = fs.get_canonicals()
+        robots = fs.get_robots()
+
         try:
             response_header = response_header
         except:
             response_header = 'N/A'
-        try:
-            canonical = soup.find('link', attrs={'rel': 'canonical'})
-            canonical_count = len(soup.findAll('link', attrs={'rel': 'canonical'}))
-            canonical = canonical['href']
-            canonical_count = canonical_count
-        except:
-            canonical = 'N/A'
-            canonical_count = 0
-        try:
-            robots = soup.find('meta', attrs={'name': 'robots'})
-            robots = robots['content']
-        except:
-            robots = 'N/A'
 
         cursor.execute('''INSERT INTO results(id,url,meta_title,title_length,meta_description,description_length,
         response_header,canonical,canonical_count,robots,type,time)
