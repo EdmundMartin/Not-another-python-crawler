@@ -36,7 +36,12 @@ class load_queue():
 class bloggers():
 
     def __init__(self, url, body, Project,cursor,db):
-        soup = BeautifulSoup(body)
+
+        try:
+            soup = BeautifulSoup(body,'lxml')
+        except:
+            soup = BeautifulSoup(body,'html.parser')
+
         self.url = url
         self.project = Project
         try:
